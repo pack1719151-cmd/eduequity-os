@@ -3,11 +3,13 @@
 Comprehensive Auth Test Script for EduEquity OS
 Tests all auth endpoints with both Bearer token and cookie authentication.
 """
+import os
 import requests
 import json
 import sys
 
-BASE_URL = "http://localhost:8000"
+# Use BASE_URL env var with fallback
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
 API_BASE = f"{BASE_URL}/api/v1"
 
 # Store session cookies

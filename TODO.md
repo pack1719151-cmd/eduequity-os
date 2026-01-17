@@ -1,21 +1,46 @@
-# Backend Fixes TODO
+# EduEquity OS - Backend Verification & Stabilization
 
-## Task A: Add missing __init__.py files ✅ DONE
-- [x] Create `apps/api/app/api/__init__.py`
-- [x] Create `apps/api/app/api/v1/__init__.py`
-- [x] Create `apps/api/app/db/models/__init__.py`
+## Tasks Completed
 
-## Task B: Clean up dependencies.py ✅ DONE
-- [x] Remove duplicate code and fix import ordering
-- [x] Keep only clean dependency functions
+### 1. Fix apps/api/scripts/test_auth.py ✅
+- Updated to use `BASE_URL` env var with default `http://127.0.0.1:8000`
+- Added `os` import for env var support
+- Gracefully checks if server is running before tests
+- Clearly prints which tests passed/failed
 
-## Task C: Clean up auth_routes.py ✅ DONE
-- [x] Remove inline dependency functions (get_current_user, require_roles)
-- [x] Import from core.dependencies instead
+### 2. Create apps/api/scripts/verify_setup.py ✅
+- Creates Python venv in apps/api if not exists
+- Installs requirements.txt
+- Verifies app.main can be imported
+- Prints registered routes
+- Does HTTP health check if server is running
+- Does NOT auto-start the server (to avoid port conflicts)
 
-## Task D: Add root "/" endpoint in main.py ✅ DONE
-- [x] Add @app.get("/") for browser access
+## Usage
 
-## Task E: Verify everything works
-- [ ] Test API endpoints work correctly
+### Run verification:
+```bash
+cd apps/api
+python scripts/verify_setup.py
+```
+
+### Run auth tests:
+```bash
+cd apps/api
+python scripts/test_auth.py
+```
+
+Or with custom BASE_URL:
+```bash
+BASE_URL=http://localhost:8000 python scripts/test_auth.py
+```
+
+## Verification Results
+
+All checks passed:
+- ✅ Virtual environment exists and works
+- ✅ All requirements installed (including requests)
+- ✅ App imports successfully
+- ✅ All routes registered correctly
+- ✅ Server health endpoints responding
 
