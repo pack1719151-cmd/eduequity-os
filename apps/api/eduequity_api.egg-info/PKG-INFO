@@ -1,3 +1,47 @@
+Metadata-Version: 2.4
+Name: eduequity-api
+Version: 1.0.0
+Summary: EduEquity OS Backend API
+Author: EduEquity Team
+License: MIT
+Keywords: education,api,fastapi
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: fastapi>=0.109.0
+Requires-Dist: uvicorn[standard]>=0.27.0
+Requires-Dist: sqlalchemy>=2.0.25
+Requires-Dist: alembic>=1.13.1
+Requires-Dist: python-jose[cryptography]>=3.3.0
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: python-multipart>=0.0.6
+Requires-Dist: pydantic>=2.5.3
+Requires-Dist: pydantic-settings>=2.1.0
+Requires-Dist: psycopg2-binary>=2.9.9
+Requires-Dist: redis>=5.0.1
+Requires-Dist: qrcode>=1.5.3
+Requires-Dist: aiofiles>=23.2.1
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: loguru>=0.7.2
+Requires-Dist: httpx>=0.26.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.4; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.3; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: httpx>=0.26.0; extra == "dev"
+Requires-Dist: black>=23.12.1; extra == "dev"
+Requires-Dist: isort>=5.13.2; extra == "dev"
+Requires-Dist: ruff>=0.1.15; extra == "dev"
+Requires-Dist: mypy>=1.8.0; extra == "dev"
+Dynamic: license-file
+
 # EduEquity OS
 
 <div align="center">
