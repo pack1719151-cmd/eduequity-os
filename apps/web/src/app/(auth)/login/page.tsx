@@ -1,17 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Loader2 } from "lucide-react"
 import { authApi } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { BookOpen, Loader2 } from "lucide-react"
+import { BookOpen } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 const loginSchema = z.object({
@@ -21,10 +22,8 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+function LoginFormContent({ redirect }: { redirect: string }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/dashboard"
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<LoginFormData>({
@@ -116,6 +115,32 @@ export default function LoginPage() {
         </Form>
       </Card>
     </div>
+  )
+}
+
+function LoginLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function LoginContent() {
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect") || "/dashboard"
+  return <LoginFormContent redirect={redirect} />
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   )
 }
 
