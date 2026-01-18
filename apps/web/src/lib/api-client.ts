@@ -61,7 +61,7 @@ export const apiClient = new ApiClient()
 export const authApi = {
   login: (email: string, password: string) =>
     apiClient.post('/api/v1/auth/login', { email, password }),
-  register: (data: { email: string; password: string; firstName: string; lastName: string; role: string }) =>
+  register: (data: { email: string; password: string; full_name: string; role: string }) =>
     apiClient.post('/api/v1/auth/register', data),
   logout: () => apiClient.post('/api/v1/auth/logout'),
   refresh: () => apiClient.post('/api/v1/auth/refresh'),

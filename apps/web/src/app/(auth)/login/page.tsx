@@ -1,33 +1,31 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { authApi } from "@/lib/api-client"
+import * as z from "zod"
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { BookOpen, Loader2 } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
+import { authApi } from "@/lib/api-client"
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/dashboard"
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
-  const form = useForm<LoginFormData>({
+  const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -35,85 +33,104 @@ export default function LoginPage() {
     },
   })
 
-  async function onSubmit(data: LoginFormData) {
+  async function onSubmit(data: LoginFormValues) {
     setIsLoading(true)
+    setError(null)
+
     try {
       await authApi.login(data.email, data.password)
-      toast({
-        title: "Success",
-        description: "You have been logged in successfully.",
+      // Fetch user role and redirect to appropriate dashboard
+      const response = await fetch("/api/v1/auth/me", {
+        headers: {
+          "Authorization": `Bearer ${document.cookie.split('; ').find(row => row.startsWith('eduequity_session='))?.split('=')[1] || ''}`
+        }
       })
-      router.push(redirect)
-      router.refresh()
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { detail?: string } } }
-      toast({
-        title: "Error",
-        description: err.response?.data?.detail || "Invalid email or password.",
-        variant: "destructive",
-      })
+      
+      if (response.ok) {
+        const user = await response.json()
+        const dashboardRoutes: Record<string, string> = {
+          student: "/dashboard/student",
+          teacher: "/dashboard/teacher",
+          principal: "/dashboard/principal",
+        }
+        router.push(dashboardRoutes[user.role] || "/dashboard")
+        router.refresh()
+      } else {
+        router.push("/dashboard")
+      }
+    } catch (err) {
+      setError("Invalid email or password")
+      console.error("Login error:", err)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold">EduEquity OS</span>
-            </div>
-          </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardDescription>
+            Enter your credentials to access your account
+          </CardDescription>
         </CardHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
-              </Button>
-              <p className="text-sm text-center text-muted-foreground">
-                Do not have an account?{" "}
-                <Link href="/register" className="text-primary hover:underline">
-                  Sign up
-                </Link>
-              </p>
-            </CardFooter>
-          </form>
-        </Form>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign in"}
+            </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link href="/register" className="font-medium text-primary hover:underline">
+                Create one
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   )
