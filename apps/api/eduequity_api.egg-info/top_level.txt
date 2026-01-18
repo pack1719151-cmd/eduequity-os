@@ -1,5 +1,4 @@
 alembic
 app
+apps
 scripts
-tests
-venv

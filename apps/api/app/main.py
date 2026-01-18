@@ -7,11 +7,23 @@ from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.middleware import setup_middleware
 from app.api.v1.router import api_router
+from app.db.models.base import Base
+from app.db.session import engine
 
 # Setup logging
 setup_logging()
 
 logger = logging.getLogger(__name__)
+
+
+def create_tables():
+    """Create all database tables"""
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {e}")
+
 
 app = FastAPI(
     title="EduEquity OS API",
@@ -36,6 +48,12 @@ setup_middleware(app)
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Create tables on startup"""
+    create_tables()
 
 
 @app.get("/")

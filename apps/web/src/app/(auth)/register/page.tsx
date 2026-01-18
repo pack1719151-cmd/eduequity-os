@@ -59,10 +59,13 @@ export default function RegisterPage() {
       if (result.success) {
         router.push("/login?registered=true")
       } else {
-        setError("Registration failed. Please try again.")
+        setError(result.message || "Registration failed. Please try again.")
       }
-    } catch (err) {
-      setError("An error occurred during registration")
+    } catch (err: unknown) {
+      // Show actual backend error message
+      const axiosError = err as { response?: { data?: { detail?: string } }; message?: string }
+      const backendError = axiosError.response?.data?.detail || axiosError.message || "An error occurred during registration"
+      setError(backendError)
       console.error("Register error:", err)
     } finally {
       setIsLoading(false)

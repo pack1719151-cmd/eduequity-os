@@ -3,7 +3,14 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+# Use SQLite for development if PostgreSQL is not available
+# Replace postgresql:// with sqlite:///
+db_url = settings.DATABASE_URL
+if "postgresql" in db_url:
+    # Try to use SQLite for local development when PostgreSQL is not available
+    db_url = "sqlite:///./eduequity.db"
+
+engine = create_engine(db_url, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

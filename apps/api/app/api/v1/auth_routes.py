@@ -84,15 +84,17 @@ def login(
     # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": str(user.id), "role": user.role},
-        expires_delta=access_token_expires
+        subject=str(user.id),
+        expires_delta=access_token_expires,
+        data={"role": user.role}
     )
 
     # Create refresh token
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     refresh_token = create_access_token(
-        data={"sub": str(user.id), "type": "refresh"},
-        expires_delta=refresh_token_expires
+        subject=str(user.id),
+        expires_delta=refresh_token_expires,
+        data={"type": "refresh"}
     )
 
     # Set access token cookie
@@ -228,15 +230,17 @@ def refresh_token(
     # Create new access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": str(user.id), "role": user.role},
-        expires_delta=access_token_expires
+        subject=str(user.id),
+        expires_delta=access_token_expires,
+        data={"role": user.role}
     )
 
     # Create new refresh token
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     new_refresh_token = create_access_token(
-        data={"sub": str(user.id), "type": "refresh"},
-        expires_delta=refresh_token_expires
+        subject=str(user.id),
+        expires_delta=refresh_token_expires,
+        data={"type": "refresh"}
     )
 
     # Set new access token cookie

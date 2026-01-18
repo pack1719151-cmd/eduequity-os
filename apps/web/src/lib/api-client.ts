@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Use empty baseURL to route through Next.js proxy at /api/v1/*
+const API_URL = ''
 
 class ApiClient {
   private client: AxiosInstance

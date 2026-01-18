@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
     APP_SECRET_KEY: str = "your-secret-key"
+    APP_NAME: str = "EduEquity OS API"
+    API_V1_STR: str = "/api/v1"
+    SECRET_KEY: str = "your-super-secret-key-change-in-production"
     DATABASE_URL: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/eduequity"
     JWT_SECRET_KEY: str = "your-jwt-secret"
     JWT_ALGORITHM: str = "HS256"
@@ -20,6 +23,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 
 @lru_cache()

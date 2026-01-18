@@ -39,27 +39,27 @@ export default function LoginPage() {
 
     try {
       await authApi.login(data.email, data.password)
-      // Fetch user role and redirect to appropriate dashboard
-      const response = await fetch("/api/v1/auth/me", {
-        headers: {
-          "Authorization": `Bearer ${document.cookie.split('; ').find(row => row.startsWith('eduequity_session='))?.split('=')[1] || ''}`
-        }
-      })
       
-      if (response.ok) {
-        const user = await response.json()
-        const dashboardRoutes: Record<string, string> = {
-          student: "/dashboard/student",
-          teacher: "/dashboard/teacher",
-          principal: "/dashboard/principal",
-        }
-        router.push(dashboardRoutes[user.role] || "/dashboard")
-        router.refresh()
-      } else {
-        router.push("/dashboard")
+      // Get user role from cookie for redirect
+      const roleCookie = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('user_role='))
+        ?.split('=')[1]
+      
+      const dashboardRoutes: Record<string, string> = {
+        student: "/dashboard/student",
+        teacher: "/dashboard/teacher",
+        principal: "/dashboard/principal",
       }
+      
+      const redirectUrl = dashboardRoutes[roleCookie || ''] || "/dashboard"
+      router.push(redirectUrl)
+      router.refresh()
     } catch (err) {
-      setError("Invalid email or password")
+      // Show actual backend error message
+      const axiosError = err as { response?: { data?: { detail?: string } }; message?: string }
+      const backendError = axiosError.response?.data?.detail || axiosError.message || "Invalid email or password"
+      setError(backendError)
       console.error("Login error:", err)
     } finally {
       setIsLoading(false)

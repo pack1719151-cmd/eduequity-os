@@ -2,190 +2,112 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-export async function GET(
+// Helper function to forward request to backend
+async function proxyRequest(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  method: string,
+  path: string[]
 ) {
-  const path = params.path.join('/')
+  const pathStr = path.join('/')
   const searchParams = request.nextUrl.search.toString()
+  const targetUrl = `${API_URL}/api/v1/${pathStr}${searchParams ? `?${searchParams}` : ''}`
   
-  const url = `${API_URL}/api/v1/${path}${searchParams ? `?${searchParams}` : ''}`
+  console.log(`[Proxy] ${method} ${request.nextUrl.pathname} -> ${targetUrl}`)
   
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(request.headers.get('cookie') && {
-          'Cookie': request.headers.get('cookie')!,
-        }),
-        ...Object.fromEntries(request.headers.entries()),
-      },
-      credentials: 'include',
-    })
-
-    const data = await response.json()
-    
-    return NextResponse.json(data, {
-      status: response.status,
-    })
-  } catch (error) {
-    console.error('API proxy error:', error)
-    return NextResponse.json(
-      { detail: 'Failed to connect to backend API' },
-      { status: 502 }
-    )
+  // Clone headers and remove 'host' to avoid conflicts
+  const headers = new Headers()
+  for (const [key, value] of request.headers.entries()) {
+    if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'transfer-encoding') {
+      headers.set(key, value)
+    }
   }
-}
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  const path = params.path.join('/')
-  const url = `${API_URL}/api/v1/${path}`
+  headers.set('X-Forwarded-Host', request.headers.get('host') || 'localhost:3000')
+  
+  // Prepare fetch options
+  const fetchOptions: RequestInit = {
+    method,
+    headers,
+    credentials: 'include',
+  }
+  
+  // Forward body for POST, PUT, PATCH
+  if (['POST', 'PUT', 'PATCH'].includes(method)) {
+    try {
+      const body = await request.json()
+      fetchOptions.body = JSON.stringify(body)
+      if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json')
+      }
+    } catch (e) {
+      console.error('[Proxy] Failed to parse request body:', e)
+    }
+  }
   
   try {
-    const body = await request.json()
+    const response = await fetch(targetUrl, fetchOptions)
+    console.log(`[Proxy] Backend responded with status: ${response.status}`)
     
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(request.headers.get('cookie') && {
-          'Cookie': request.headers.get('cookie')!,
-        }),
-        ...Object.fromEntries(request.headers.entries()),
-      },
-      body: JSON.stringify(body),
-      credentials: 'include',
-    })
-
-    const data = await response.json()
+    const data = await response.json().catch(() => ({}))
     
-    // Copy cookies from backend response to client
+    // Create response and forward cookies
     const newResponse = NextResponse.json(data, {
       status: response.status,
     })
     
-    // Forward cookies from backend
-    const setCookieHeaders = response.headers.get('set-cookie')
-    if (setCookieHeaders) {
-      newResponse.headers.set('set-cookie', setCookieHeaders)
-    }
+    // Forward all Set-Cookie headers from backend
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        newResponse.headers.append('set-cookie', value)
+      }
+    })
     
     return newResponse
   } catch (error) {
-    console.error('API proxy error:', error)
+    console.error('[Proxy] Error connecting to backend:', error)
     return NextResponse.json(
-      { detail: 'Failed to connect to backend API' },
+      { detail: 'Failed to connect to backend API', error: String(error) },
       { status: 502 }
     )
   }
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await params
+  return proxyRequest(request, 'GET', path)
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await params
+  return proxyRequest(request, 'POST', path)
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/')
-  const url = `${API_URL}/api/v1/${path}`
-  
-  try {
-    const body = await request.json()
-    
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(request.headers.get('cookie') && {
-          'Cookie': request.headers.get('cookie')!,
-        }),
-      },
-      body: JSON.stringify(body),
-      credentials: 'include',
-    })
-
-    const data = await response.json()
-    
-    return NextResponse.json(data, {
-      status: response.status,
-    })
-  } catch (error) {
-    console.error('API proxy error:', error)
-    return NextResponse.json(
-      { detail: 'Failed to connect to backend API' },
-      { status: 502 }
-    )
-  }
+  const { path } = await params
+  return proxyRequest(request, 'PUT', path)
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/')
-  const url = `${API_URL}/api/v1/${path}`
-  
-  try {
-    const body = await request.json()
-    
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(request.headers.get('cookie') && {
-          'Cookie': request.headers.get('cookie')!,
-        }),
-      },
-      body: JSON.stringify(body),
-      credentials: 'include',
-    })
-
-    const data = await response.json()
-    
-    return NextResponse.json(data, {
-      status: response.status,
-    })
-  } catch (error) {
-    console.error('API proxy error:', error)
-    return NextResponse.json(
-      { detail: 'Failed to connect to backend API' },
-      { status: 502 }
-    )
-  }
+  const { path } = await params
+  return proxyRequest(request, 'PATCH', path)
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/')
-  const url = `${API_URL}/api/v1/${path}`
-  
-  try {
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(request.headers.get('cookie') && {
-          'Cookie': request.headers.get('cookie')!,
-        }),
-      },
-      credentials: 'include',
-    })
-
-    const data = await response.json()
-    
-    return NextResponse.json(data, {
-      status: response.status,
-    })
-  } catch (error) {
-    console.error('API proxy error:', error)
-    return NextResponse.json(
-      { detail: 'Failed to connect to backend API' },
-      { status: 502 }
-    )
-  }
+  const { path } = await params
+  return proxyRequest(request, 'DELETE', path)
 }
 
