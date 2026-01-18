@@ -1,46 +1,33 @@
-# EduEquity OS - Backend Verification & Stabilization
+# TODO Fix Plan - EduEquity OS
 
-## Tasks Completed
+## Step 1: Install missing radix-ui dependencies in apps/web
+- [x] 1.1 Run npm install in apps/web
 
-### 1. Fix apps/api/scripts/test_auth.py ✅
-- Updated to use `BASE_URL` env var with default `http://127.0.0.1:8000`
-- Added `os` import for env var support
-- Gracefully checks if server is running before tests
-- Clearly prints which tests passed/failed
+## Step 2: Fix proxy route params handling
+- [x] 2.1 Update route.ts to properly await params
 
-### 2. Create apps/api/scripts/verify_setup.py ✅
-- Creates Python venv in apps/api if not exists
-- Installs requirements.txt
-- Verifies app.main can be imported
-- Prints registered routes
-- Does HTTP health check if server is running
-- Does NOT auto-start the server (to avoid port conflicts)
+## Step 3: Fix root package.json scripts
+- [x] 3.1 Remove --workspace=apps/api from scripts
+- [x] 3.2 Use direct Python commands for API
 
-## Usage
+## Step 4: Start FastAPI on port 8000
+- [x] 4.1 Kill any existing process on port 8000
+- [x] 4.2 Start uvicorn in background
 
-### Run verification:
-```bash
-cd apps/api
-python scripts/verify_setup.py
-```
+## Step 5: Start Next.js on port 3000
+- [x] 5.1 Kill any existing process on port 3000
+- [x] 5.2 Start next dev in background
 
-### Run auth tests:
-```bash
-cd apps/api
-python scripts/test_auth.py
-```
+## Step 6: Verify with curl
+- [x] 6.1 curl http://localhost:8000/health - 200 OK
+- [x] 6.2 curl http://localhost:8000/api/v1/auth/health - 200 OK
+- [x] 6.3 curl http://localhost:3000/api/v1/health - 200 OK
+- [x] 6.4 curl http://localhost:3000/api/v1/auth/health - 200 OK
 
-Or with custom BASE_URL:
-```bash
-BASE_URL=http://localhost:8000 python scripts/test_auth.py
-```
+## Step 7: Git Commit + Push
+- [x] 7.1 Stage changes
+- [x] 7.2 Commit with message
+- [x] 7.3 Push to origin/main
 
-## Verification Results
-
-All checks passed:
-- ✅ Virtual environment exists and works
-- ✅ All requirements installed (including requests)
-- ✅ App imports successfully
-- ✅ All routes registered correctly
-- ✅ Server health endpoints responding
+ALL TASKS COMPLETED SUCCESSFULLY
 

@@ -95,8 +95,16 @@ export const authApi = {
   login: (email: string, password: string): Promise<LoginResponse> =>
     apiClient.post<LoginResponse>('/api/v1/auth/login', { email, password }),
   
-  register: (data: { email: string; password: string; full_name: string; role: string }): Promise<RegisterResponse> =>
-    apiClient.post<RegisterResponse>('/api/v1/auth/register', data),
+  register: async (data: { email: string; password: string; full_name: string; role: string }): Promise<RegisterResponse> => {
+    try {
+      const user = await apiClient.post<User>('/api/v1/auth/register', data)
+      return { success: true, message: 'Registration successful', user }
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { detail?: string } }; message?: string }
+      const backendError = axiosError.response?.data?.detail || axiosError.message || 'Registration failed'
+      throw new Error(backendError)
+    }
+  },
   
   logout: (): Promise<{ message: string }> =>
     apiClient.post<{ message: string }>('/api/v1/auth/logout'),
