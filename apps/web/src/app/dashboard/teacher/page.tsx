@@ -46,7 +46,7 @@ export default async function TeacherDashboard() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-lg font-semibold mb-4">Today's Schedule</h3>
+          <h3 className="text-lg font-semibold mb-4">Today&apos;s Schedule</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div>

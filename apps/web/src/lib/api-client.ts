@@ -58,21 +58,63 @@ class ApiClient {
 
 export const apiClient = new ApiClient()
 
+// Response types
+export interface LoginResponse {
+  access_token: string
+  token_type: string
+  user: {
+    id: string
+    email: string
+    full_name: string
+    role: string
+  }
+}
+
+export interface RegisterResponse {
+  success: boolean
+  message: string
+  user?: {
+    id: string
+    email: string
+    full_name: string
+    role: string
+  }
+}
+
+export interface User {
+  id: string
+  email: string
+  full_name: string
+  role: string
+  created_at?: string
+  updated_at?: string
+}
+
 export const authApi = {
-  login: (email: string, password: string) =>
-    apiClient.post('/api/v1/auth/login', { email, password }),
-  register: (data: { email: string; password: string; full_name: string; role: string }) =>
-    apiClient.post('/api/v1/auth/register', data),
-  logout: () => apiClient.post('/api/v1/auth/logout'),
-  refresh: () => apiClient.post('/api/v1/auth/refresh'),
-  me: () => apiClient.get('/api/v1/auth/me'),
+  login: (email: string, password: string): Promise<LoginResponse> =>
+    apiClient.post<LoginResponse>('/api/v1/auth/login', { email, password }),
+  
+  register: (data: { email: string; password: string; full_name: string; role: string }): Promise<RegisterResponse> =>
+    apiClient.post<RegisterResponse>('/api/v1/auth/register', data),
+  
+  logout: (): Promise<{ message: string }> =>
+    apiClient.post<{ message: string }>('/api/v1/auth/logout'),
+  
+  refresh: (): Promise<{ access_token: string }> =>
+    apiClient.post<{ access_token: string }>('/api/v1/auth/refresh'),
+  
+  me: (): Promise<User> =>
+    apiClient.get<User>('/api/v1/auth/me'),
 }
 
 export const userApi = {
-  getProfile: () => apiClient.get('/api/v1/users/me'),
-  updateProfile: (data: Partial<{ firstName: string; lastName: string; email: string }>) =>
-    apiClient.patch('/api/v1/users/me', data),
-  getAllUsers: (role?: string) => apiClient.get(`/api/v1/users${role ? `?role=${role}` : ''}`),
+  getProfile: (): Promise<User> => apiClient.get<User>('/api/v1/users/me'),
+  
+  updateProfile: (data: Partial<{ firstName: string; lastName: string; email: string }>): Promise<User> =>
+    apiClient.patch<User>('/api/v1/users/me', data),
+  
+  getAllUsers: (role?: string): Promise<User[]> => 
+    apiClient.get<User[]>(`/api/v1/users${role ? `?role=${role}` : ''}`),
 }
 
 export const attendanceApi = {
