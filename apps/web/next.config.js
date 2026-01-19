@@ -9,6 +9,18 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  transpilePackages: [
+    '@radix-ui/react-label',
+    '@radix-ui/react-slot',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-select',
+    '@radix-ui/react-toast',
+    '@radix-ui/react-dropdown-menu',
+  ],
+  webpack: (config) => {
+    config.resolve.modules = [__dirname, 'node_modules', '../../node_modules'];
+    return config;
+  },
   async rewrites() {
     return [
       {
