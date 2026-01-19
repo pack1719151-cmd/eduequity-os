@@ -16,6 +16,7 @@
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "setup": "bash scripts/setup.sh",
+    "setup:symlinks": "bash scripts/setup-radix-symlinks.sh",
     "verify": "bash scripts/verify_setup.sh"
   },
   "devDependencies": {
