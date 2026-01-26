@@ -121,10 +121,14 @@ fi
 echo ""
 print_info "Running database migrations..."
 
-# Run migrations
-cd apps/api && python -m alembic upgrade head 2>/dev/null || \
-    print_warning "Could not run migrations. Please run them manually: cd apps/api && python -m alembic upgrade head"
-
+# Run migrations only if alembic.ini exists and migrations folder has content
+cd apps/api
+if [ -f "alembic.ini" ] && [ -d "alembic/versions" ] && [ "$(ls -A alembic/versions 2>/dev/null)" ]; then
+    python -m alembic upgrade head 2>/dev/null && print_status "Database migrations completed" || \
+        print_warning "Migration failed. Running without migrations..."
+else
+    print_info "Skipping migrations (alembic not configured or no migrations found)"
+fi
 cd ../..
 
 echo ""

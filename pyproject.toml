@@ -59,9 +59,10 @@ where = ["apps/api"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+testpaths = ["apps/api/tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+addopts = "-v --tb=short"
 
 [tool.black]
 line-length = 100
